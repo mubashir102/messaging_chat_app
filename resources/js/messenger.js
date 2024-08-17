@@ -10,10 +10,34 @@ function imagePreview(input, selector) {
     }
 }
 
+// Search User Functionality
+
+function searchUsers(query) {
+    $.ajax({
+        method: "GET",
+        url: "/messenger/search",
+        data: {
+            query: query,
+        },
+        success: function (data) {
+            // $("#search-results").html(response);
+        },
+        error: function (xhr, status, error) {
+            console.error(error);
+        },
+    });
+}
+
 // On document Load
 $(document).ready(function () {
     // Image Preview
     $("#select_file").change(function () {
         imagePreview(this, ".profile-image-preview");
+    });
+
+    // Search Users
+    $(".user_search").on("keyup", function () {
+        let query = $(this).val();
+        searchUsers(query);
     });
 });

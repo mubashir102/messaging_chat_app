@@ -17,12 +17,14 @@ class UserProfileController extends Controller
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:512',
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255',
-            'user_id' => 'required',
+            'user_id' => 'required | unique:users,user_name,' . auth()->user()->id,
         ], [
             'avatar.required' => 'The Avatar field is required.',
             'user_id.required' => 'The user ID field is required.',
             'name.required' => 'The Name field is required.',
             'email.required' => 'The Email field is required.',
+            'email.email' => 'The Email must be a valid email address.',
+            'user_id.unique' => 'The user ID has already been taken.',
         ]);
         $avatarPath = $this->uploadFile($request, 'avatar', $request->avatar_path);
         $user = Auth::user();
