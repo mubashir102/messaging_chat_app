@@ -31,4 +31,17 @@ class MessengerController extends Controller
             'last_page' => $records->lastPage(),
         ]);
     }
+
+    public function fetchIdInfo(Request $request)
+    {
+        // $user = User::find($request->id);
+        $fetch = User::where('id', $request->id)->first();
+        return response()->json([
+            'fetch' => $fetch,
+        ]);
+    }
+    public function sendMessage(Request $request)
+    {
+        $request->all();
+    }
 }
