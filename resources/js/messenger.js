@@ -52,6 +52,17 @@ $(document).ready(function () {
         e.preventDefault();
         sendMessage();
     });
+
+    //send attachment
+    $(".attachment-input").change(function () {
+        imagePreview(this, ".attachment-preview");
+        $(".attachment-block").removeClass("d-none");
+    });
+
+    // Cancel attachment
+    $(".cancel-attachment").click(function () {
+        messageFormReset();
+    });
 });
 
 // --------------------------------------------
@@ -61,8 +72,9 @@ $(document).ready(function () {
 function sendMessage() {
     temporaryMsgId++;
     let tempId = `temp_${temporaryMsgId}`;
+    let hasAttachment = !!$(".attachment-input").val();
     const inputValue = messageInput.val();
-    if (inputValue.length > 0) {
+    if (inputValue.length > 0 || hasAttachment) {
         const formData = new FormData($(".message-form")[0]);
         formData.append("id", getMessengerId());
         formData.append("temporaryMsgId", tempId);
@@ -75,12 +87,26 @@ function sendMessage() {
             contentType: false,
             data: formData,
             beforeSend: function () {
-                messageBoxContainer.append(
-                    sendTempMessageCard(inputValue, tempId)
-                );
+                if (hasAttachment) {
+                    messageBoxContainer.append(
+                        sendTempMessageCard(inputValue, tempId, true)
+                    );
+                } else {
+                    messageBoxContainer.append(
+                        sendTempMessageCard(inputValue, tempId)
+                    );
+                }
+                messageFormReset();
+                // reset the form
+                // messageForm.trigger("reset");
+                // $(".emojionearea-editor").text("");
             },
             success: function (data) {
-                console.log(data);
+                const tempMsgCardElement = messageBoxContainer.find(
+                    `.message-card[data-id=${data.tempId}]`
+                );
+                tempMsgCardElement.before(data.message);
+                tempMsgCardElement.remove();
             },
             error: function (xhr, status, error) {
                 console.error(error);
@@ -91,14 +117,37 @@ function sendMessage() {
     }
 }
 
-function sendTempMessageCard(message, tempId) {
-    return `<div class="wsus__single_chat_area" data-id="${tempId}">
-                            <div class="wsus__single_chat chat_right">
-                                <p class="messages">${message}</p>
-                                <span class="far fa-clock"> Now </span>
-                                <a class="action" href="#"><i class="fas fa-trash"></i></a>
-                            </div>
-                        </div>`;
+function sendTempMessageCard(message, tempId, attachment = false) {
+    if (attachment) {
+        return `
+        <div class="wsus__single_chat_area message-card" data-id="${tempId}">
+            <div class="wsus__single_chat chat_right">
+                <div class="pre_loader">
+                    <div class="spinner-border text-light" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                ${
+                    message.length > 0
+                        ? `<p class="messages">${message}</p>`
+                        : ""
+                }
+                <span class="clock"><i class="fas fa-clock"></i> Now </span>
+                <a class="action" href="#">
+                    <i class="fas fa-trash"></i>
+                </a>
+            </div>
+        </div> `;
+    } else {
+        return `<div class="wsus__single_chat_area message-card" data-id="${tempId}">
+                    <div class="wsus__single_chat chat_right">
+                        <p class="messages">${message}</p>
+                        <span class="clock"><i class="fas fa-clock"></i> Now </span>
+                        <a class="action" href="#"><i class="fas fa-trash"></i></a>
+                    </div>
+                </div>`;
+    }
+
     // $(messageCard).appendTo(".message-list");
     // $(".message-list").scrollTop($(".message-list")[0].scrollHeight);
 }
@@ -154,6 +203,16 @@ function idInfo(id) {
             disableChatBoxLoader();
         },
     });
+}
+
+// --------------------------------------------
+// Cancel selected attachment
+// --------------------------------------------
+
+function messageFormReset() {
+    $(".attachment-block").addClass("d-none");
+    $(".emojionearea-editor").text("");
+    messageForm.trigger("reset");
 }
 
 // Search User Functionality
